@@ -8,8 +8,10 @@ CREATE TABLE audit_log (
     details TEXT
 );
 
+-- Composite index
 CREATE INDEX idx_entity_type_id 
 ON audit_log(entity_type, entity_id);
 
+-- Additional indexes
 CREATE INDEX idx_action ON audit_log(action);
 CREATE INDEX idx_performed_at ON audit_log(performed_at);
