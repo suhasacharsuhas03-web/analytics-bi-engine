@@ -1,5 +1,15 @@
-# SECURITY.md — Analytics and BI Engine
-## AI Developer 3: Suhas | Role: Security
+﻿# SECURITY.md — Analytics and BI Engine
+**Team:** 7 Members | **Sprint:** 14 April – 9 May 2026
+**AI Developer 3 / Security:** Suhas
+
+---
+
+## EXECUTIVE SUMMARY
+
+This document covers the complete security assessment of Tool-78 Analytics and BI Engine.
+The AI service was built with security-first principles including input sanitisation,
+rate limiting, security headers, and prompt injection protection. All Critical and High
+findings have been resolved. Zero Critical or High vulnerabilities remain.
 
 ---
 
@@ -30,18 +40,14 @@
 - **Damage:** Credentials stolen and misused
 - **Mitigation:** PII audit done. No personal data in prompts or logs. Verified Day 9.
 
----
-
-## 2. TOOL-SPECIFIC THREATS
-
 ### Threat 6: Malicious File Upload
 - **Attack Scenario:** Attacker uploads .exe file disguised as .pdf
 - **Damage:** Malware executed on server
 - **Mitigation:** File type and size validation. Only allowed types accepted. Max 10MB.
 
 ### Threat 7: Cross-Site Scripting (XSS)
-- **Attack Scenario:** User inputs `<script>alert('hacked')</script>` in a text field
-- **Damage:** JavaScript runs in other users' browsers, steals session tokens
+- **Attack Scenario:** User inputs `<script>alert(hacked)</script>` in a text field
+- **Damage:** JavaScript runs in other users browsers, steals session tokens
 - **Mitigation:** Input sanitisation strips all HTML tags before processing.
 
 ### Threat 8: Broken Access Control (A01)
@@ -61,65 +67,99 @@
 
 ---
 
-## 3. SECURITY TESTS CONDUCTED
+## 2. SECURITY TESTS CONDUCTED
 
-| Test | Method | Result |
-|------|--------|--------|
-| Empty input | Send blank POST request | Returns 400 ✅ |
-| SQL injection | Send `'; DROP TABLE--` | Returns 400 ✅ |
-| Prompt injection | Send `ignore instructions` | Returns 400 ✅ |
-| JWT missing | Call API without token | Returns 401 ✅ |
-| Wrong role | VIEWER calls DELETE | Returns 403 ✅ |
-| Rate limit | 35 requests in 1 min | Returns 429 ✅ |
-| XSS input | Send `<script>` tag | Stripped, 400 ✅ |
+| Day | Test | Method | Result |
+|-----|------|--------|--------|
+| Day 5 | Empty input | Send blank POST request | PASS ✅ |
+| Day 5 | SQL injection | Send DROP TABLE pattern | PASS ✅ |
+| Day 5 | Prompt injection | Send ignore instructions | PASS ✅ |
+| Day 9 | PII audit | Review all prompts and logs | PASS ✅ |
+| Day 10 | JWT enforcement | Call API without token | PASS ✅ |
+| Day 10 | Role enforcement | VIEWER calls DELETE | PASS ✅ |
+| Day 10 | Rate limit | 35 requests in 1 min | PASS ✅ |
+| Day 11 | OWASP ZAP baseline scan | Automated scan on port 8080 | PASS ✅ |
+| Day 12 | Security headers verified | GET /health headers check | PASS ✅ |
+| Day 13 | XSS input blocked | script tag in input | PASS ✅ |
+| Day 13 | SQL injection blocked | SELECT FROM in input | PASS ✅ |
+| Day 13 | Empty body blocked | POST with empty JSON | PASS ✅ |
+| Day 13 | Rate limit triggers 429 | 35 rapid requests | PASS ✅ |
 
 ---
 
-## 4. WEEK 2 SECURITY SIGN-OFF (Day 10 — 2 May 2026)
-- JWT enforcement verified
-- Rate limiting verified
-- Injection rejection verified
-- PII audit complete — no personal data in prompts or logs
-- All Medium+ ZAP findings documented
+## 3. OWASP ZAP SCAN RESULTS
 
-## 5. RESIDUAL RISKS
-- OWASP ZAP active scan scheduled for Week 3 (Day 11)
-- No Critical or High findings expected after current mitigations
+### Scan 1 — Baseline (Day 11, Before Fixes)
+| ID | Severity | Finding | Action |
+|----|----------|---------|--------|
+| Z-01 | MEDIUM | Missing security headers (Flask) | Fixed — flask-talisman added |
+| Z-02 | MEDIUM | CORS misconfiguration | Fixed — origins restricted to localhost |
+| Z-03 | LOW | Development server in use | Accepted — dev environment only |
 
-## 6. TEAM SIGN-OFF
-- AI Developer 3: Suhas — 2 May 2026
-## 8. DAY 12 SECURITY FIXES
-
-### flask-talisman Added
-- X-Content-Type-Options: nosniff ✅
-- X-Frame-Options: SAMEORIGIN ✅  
-- X-XSS-Protection: 1; mode=block ✅
-
-### Re-scan Result
+### Scan 2 — After Fixes (Day 12)
 - Zero Critical findings ✅
 - Zero High findings ✅
-- All Medium findings from Day 11 resolved ✅
+- All Medium findings resolved ✅
 
-**Date:** 11 May 2026
-**Signed off by:** Suhas (AI Developer 3)## 9. DAY 13 FULL STACK SECURITY TEST RESULTS
+---
 
-**Date:** 11 May 2026
-**Tested by:** Suhas (AI Developer 3)
+## 4. FINDINGS AND FIXES
 
-| Test | Input | Expected | Result |
-|------|-------|----------|--------|
-| XSS injection | `<script>alert(1)</script>` | 400 blocked | PASS ✅ |
-| SQL injection | `SELECT * FROM users` | 400 blocked | PASS ✅ |
-| Prompt injection | `ignore previous instructions` | 400 blocked | PASS ✅ |
-| Empty input | `{}` | 400 error | PASS ✅ |
-| Rate limit | 35 requests in 1 min | 429 after 30 | PASS ✅ |
-| Security headers | GET /health | X-Content-Type-Options, X-Frame-Options present | PASS ✅ |
+| ID | Severity | Finding | Fix Applied | Status |
+|----|----------|---------|-------------|--------|
+| F-01 | MEDIUM | Missing security headers | flask-talisman added to app.py | Fixed ✅ |
+| F-02 | MEDIUM | CORS misconfiguration | Origins restricted in app.py | Fixed ✅ |
+| F-03 | MEDIUM | Verbose error messages | Consistent JSON error responses | Fixed ✅ |
+| F-04 | LOW | Development server | Accepted for dev environment | Accepted |
 
-### Summary
-- Zero Critical findings
-- Zero High findings
-- All injection attacks blocked
-- Rate limiting working correctly
-- Security headers confirmed active via flask-talisman
+---
 
-**AI Developer 3 Sign-off:** Suhas — 11 May 2026
+## 5. RESIDUAL RISKS
+
+| Risk | Description | Accepted By |
+|------|-------------|-------------|
+| Third-party AI | Groq API receives input data — subject to Groq privacy policy | Team |
+| IP-based rate limiting | Rotating IPs could bypass rate limit | Team |
+| Dev server | Flask dev server used — production needs Gunicorn | Team |
+
+---
+
+## 6. SECURITY ARCHITECTURE
+
+- **Input Layer:** All inputs sanitised before processing — SQL, XSS, prompt injection blocked
+- **Auth Layer:** JWT required on all backend endpoints — 401 without valid token
+- **Access Layer:** RBAC with ADMIN/MANAGER/VIEWER roles — 403 on wrong role
+- **AI Layer:** Prompts contain no PII — Groq API called over HTTPS only
+- **Transport Layer:** Security headers via flask-talisman on all responses
+- **Rate Layer:** flask-limiter — 30 req/min global, 10 req/min on sensitive endpoints
+
+---
+
+## 7. FINAL SECURITY CHECKLIST
+
+- [x] Input sanitisation middleware active and tested
+- [x] Prompt injection patterns blocked
+- [x] SQL injection patterns blocked
+- [x] XSS patterns blocked
+- [x] Rate limiting active — 30 req/min
+- [x] Security headers active — X-Content-Type-Options, X-Frame-Options, X-XSS-Protection
+- [x] CORS restricted to frontend origins only
+- [x] .env not committed to GitHub
+- [x] API keys in environment variables only
+- [x] OWASP ZAP scan completed — zero Critical/High remaining
+- [x] PII audit complete — no personal data in prompts or logs
+- [x] All findings documented with fix status
+
+---
+
+## 8. TEAM SIGN-OFF
+
+| Member | Role | Sign-off |
+|--------|------|----------|
+| Suhas | AI Developer 3 | Signed — 11 May 2026 |
+| TBD | Java Developer 1 | Pending |
+| TBD | Java Developer 2 | Pending |
+| TBD | Java Developer 3 | Pending |
+| TBD | AI Developer 1 | Pending |
+| TBD | AI Developer 2 | Pending |
+| TBD | Security Reviewer | Pending |
