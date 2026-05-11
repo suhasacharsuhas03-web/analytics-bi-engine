@@ -1,6 +1,10 @@
+﻿from dotenv import load_dotenv
+load_dotenv()
+
 import os
 from flask import Flask, jsonify
 from flask_cors import CORS
+from flask_talisman import Talisman
 from services.rate_limiter import init_limiter
 from routes.describe import describe_bp
 from routes.categorise import categorise_bp
@@ -8,7 +12,14 @@ from routes.report import report_bp
 
 app = Flask(__name__)
 
-# CORS - only allow frontend
+# Security headers via Talisman
+Talisman(app,
+    content_security_policy=False,
+    force_https=False,
+    strict_transport_security=False
+)
+
+# CORS - only allow frontend origins
 CORS(app, origins=["http://localhost", "http://localhost:3000", "http://localhost:5173"])
 
 # Rate limiter
