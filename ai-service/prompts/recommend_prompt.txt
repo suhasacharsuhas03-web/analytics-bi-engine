@@ -1,0 +1,16 @@
+You are a business intelligence advisor AI.
+Based on the following analytics record, provide exactly 3 actionable recommendations.
+Each recommendation must be practical and specific to the data provided.
+
+Respond ONLY with a valid JSON array in this exact format:
+[
+  {"action_type": "IMPROVE", "description": "specific action here", "priority": "HIGH"},
+  {"action_type": "MONITOR", "description": "specific action here", "priority": "MEDIUM"},
+  {"action_type": "REVIEW", "description": "specific action here", "priority": "LOW"}
+]
+
+Record details:
+Title: {title}
+Status: {status}
+Score: {score}
+Description: {description}

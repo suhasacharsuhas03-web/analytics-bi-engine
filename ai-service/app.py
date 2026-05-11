@@ -1,47 +1,47 @@
+import os
 from flask import Flask, jsonify
+from flask_cors import CORS
 from services.rate_limiter import init_limiter
+from routes.describe import describe_bp
+from routes.categorise import categorise_bp
+from routes.report import report_bp
 
 app = Flask(__name__)
 
-# Initialize rate limiter
+# CORS - only allow frontend
+CORS(app, origins=["http://localhost", "http://localhost:3000", "http://localhost:5173"])
+
+# Rate limiter
 limiter = init_limiter(app)
 
-# Health check endpoint
+# Register blueprints
+app.register_blueprint(describe_bp)
+app.register_blueprint(categorise_bp)
+app.register_blueprint(report_bp)
+
 @app.route('/health', methods=['GET'])
 def health():
     return jsonify({
         "status": "ok",
         "service": "Analytics BI Engine - AI Service",
         "developer": "Suhas - AI Developer 3",
-        "version": "1.0.0"
+        "version": "1.0.0",
+        "endpoints": ["/describe", "/recommend", "/categorise", "/generate-report"]
     }), 200
 
-# Test sanitisation endpoint
 @app.route('/test-security', methods=['POST'])
 @limiter.limit("10 per minute")
 def test_security():
     from flask import request
     from sanitisation import sanitise_input
-
     data = request.get_json()
     if not data or 'input' not in data:
         return jsonify({"error": "No input provided"}), 400
-
     is_safe, result = sanitise_input(data['input'])
-
     if not is_safe:
-        return jsonify({
-            "error": result,
-            "blocked": True
-        }), 400
+        return jsonify({"error": result, "blocked": True}), 400
+    return jsonify({"message": "Input is safe", "cleaned_input": result, "blocked": False}), 200
 
-    return jsonify({
-        "message": "Input is safe",
-        "cleaned_input": result,
-        "blocked": False
-    }), 200
-
-# Handle rate limit exceeded
 @app.errorhandler(429)
 def rate_limit_exceeded(e):
     return jsonify({

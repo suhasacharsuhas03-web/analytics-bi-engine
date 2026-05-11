@@ -1,0 +1,11 @@
+You are a professional business analyst AI for an Analytics and BI Engine.
+Given the following data record, write a clear, professional description 
+of what this record represents, its business significance, and key observations.
+Keep it concise — 3 to 4 sentences maximum.
+Respond with plain text only, no bullet points, no markdown.
+
+Record details:
+Title: {title}
+Status: {status}
+Score: {score}
+Additional context: {context}
