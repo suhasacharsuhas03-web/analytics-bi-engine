@@ -3,8 +3,8 @@ load_dotenv()
 
 import os
 from flask import Flask, jsonify
-from flask_cors import CORS
 from flask_talisman import Talisman
+from flask_cors import CORS
 from services.rate_limiter import init_limiter
 from routes.describe import describe_bp
 from routes.categorise import categorise_bp
@@ -12,14 +12,17 @@ from routes.report import report_bp
 
 app = Flask(__name__)
 
-# Security headers via Talisman
-Talisman(app,
+# Security headers — must be before CORS
+talisman = Talisman(app,
     content_security_policy=False,
     force_https=False,
-    strict_transport_security=False
+    strict_transport_security=False,
+    x_content_type_options=True,
+    x_xss_protection=True,
+    frame_options='SAMEORIGIN'
 )
 
-# CORS - only allow frontend origins
+# CORS after Talisman
 CORS(app, origins=["http://localhost", "http://localhost:3000", "http://localhost:5173"])
 
 # Rate limiter
@@ -37,7 +40,8 @@ def health():
         "service": "Analytics BI Engine - AI Service",
         "developer": "Suhas - AI Developer 3",
         "version": "1.0.0",
-        "endpoints": ["/describe", "/recommend", "/categorise", "/generate-report"]
+        "endpoints": ["/describe", "/recommend", "/categorise", "/generate-report"],
+        "security_headers": "enabled"
     }), 200
 
 @app.route('/test-security', methods=['POST'])
